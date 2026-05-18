@@ -14,7 +14,6 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from fibonacci.models import *
 from fibonacci.serializers import UserSerializer, UserSerializerWithToken, ArtistListSerializer, ProductSerializer
 
-# Serializer customizado para incluir dados do usuário no token de login
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         data = super().validate(attrs)
@@ -38,12 +37,19 @@ class MyTokenObtainPairView(TokenObtainPairView):
 def registerUser(request):
     data = request.data
     try:
+       
         user = User.objects.create(
             first_name=data['name'],
             username=data['email'],
             email=data['email'],
             password=make_password(data['password'])
         )
+        
+        profile, created = ArtistProfile.objects.get_or_create(user=user)
+        profile.location = data.get('location', 'Brasil')
+        profile.bio = data.get('bio', 'Nada a dizer')
+        profile.save()
+
         serializer = UserSerializerWithToken(user, many=False)
         return Response(serializer.data)
     except Exception as e:  
@@ -69,8 +75,19 @@ def updateUserProfile(request):
     
     if data.get('password') and data['password'] != "":
         user.password = make_password(data['password'])
-        
     user.save()
+
+    profile, created = ArtistProfile.objects.get_or_create(user=user)
+    profile.location = data.get('location', profile.location)
+    profile.bio = data.get('bio', profile.bio)
+    
+    if 'avatar' in request.FILES:
+        profile.profile_image = request.FILES['avatar']
+    if 'banner' in request.FILES:
+        profile.banner_image = request.FILES['banner']
+        
+    profile.save()
+    
     serializer = UserSerializerWithToken(user, many=False)
     return Response(serializer.data)
 
