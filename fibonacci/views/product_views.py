@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.db.models import Q 
 
-from fibonacci.models import Product, Review
+from fibonacci.models import Product, Review, Category
 from fibonacci.serializers import ProductSerializer, ReviewSerializer
 
 @api_view(['GET'])
@@ -99,19 +99,40 @@ def createProductReview(request, pk):
 def createProduct(request):
     user = request.user
     data = request.data
+    
+    print("\n--- DEBUG: CRIACAO DE NOVA OBRA ---")
+    print("Dados brutos recebidos:", data)
 
+    category_name = data.get('category_name')
+    if not category_name:
+        category_name = data.get('category') 
+        
+    print("Categoria enviada pelo front:", category_name)
+
+    category_obj = None
+    if category_name and category_name.strip() != "":
+        nome_formatado = category_name.strip().capitalize()
+        category_obj, created = Category.objects.get_or_create(name=nome_formatado)
+        print(f"Objeto Categoria '{category_obj.name}' vinculado. Criado agora? {created}")
+
+    # Criação do produto
     product = Product.objects.create(
         user=user,
         name=data.get('name', 'Nova Obra'),
         price=data.get('price', 0),
         brand=data.get('brand', 'Artista Local'),
+        category=category_obj,
         countInstock=data.get('countInstock', 1),
         description=data.get('description', '')
     )
 
     if request.FILES.get('image'):
         product.image = request.FILES.get('image')
-        product.save()
+        
+    product.save() 
+
+    print(f"Produto salvo com sucesso! Categoria no banco: {product.category}")
+    print("-----------------------------------\n")
 
     serializer = ProductSerializer(product, many=False)
     return Response(serializer.data, status=status.HTTP_201_CREATED)

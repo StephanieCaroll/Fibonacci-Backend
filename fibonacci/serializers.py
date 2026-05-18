@@ -92,6 +92,7 @@ class CommentSerializer(serializers.ModelSerializer):
 class ProductSerializer(serializers.ModelSerializer):
     reviews = serializers.SerializerMethodField(read_only=True)
     comments = serializers.SerializerMethodField(read_only=True)
+    category_name = serializers.SerializerMethodField(read_only=True)
 
     class Meta: 
         model = Product
@@ -104,6 +105,11 @@ class ProductSerializer(serializers.ModelSerializer):
     def get_comments(self, obj):
         comments = obj.comments.all()
         return CommentSerializer(comments, many=True).data
+    
+    def get_category_name(self, obj):
+        if obj.category:
+            return obj.category.name
+        return "Arte"
     
 
 class ShippingAddressSerializer(serializers.ModelSerializer):
