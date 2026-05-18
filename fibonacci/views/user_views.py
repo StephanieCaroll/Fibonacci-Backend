@@ -73,7 +73,6 @@ def updateUserProfile(request):
     print("Arquivos recebidos:", request.FILES)
     print("=" * 50)
     
-    # 1. Atualiza dados básicos do Usuário
     if 'name' in request.data and request.data['name']:
         user.first_name = request.data['name']
     
@@ -83,11 +82,9 @@ def updateUserProfile(request):
     
     user.save()
 
-    # 2. Atualiza o perfil do artista
     profile, created = ArtistProfile.objects.get_or_create(user=user)
     profile.is_artist = True  # Garante que é artista
     
-    # Atualiza os campos de texto
     if 'bio' in request.data:
         profile.bio = request.data['bio']
         print(f"Bio atualizada para: {profile.bio}")
@@ -96,7 +93,6 @@ def updateUserProfile(request):
         profile.location = request.data['location']
         print(f"Location atualizada para: {profile.location}")
     
-    # Processa os arquivos de imagem
     if 'avatar' in request.FILES:
         profile.profile_image = request.FILES['avatar']
         print(f"Avatar atualizado: {request.FILES['avatar'].name}")
@@ -104,10 +100,17 @@ def updateUserProfile(request):
     if 'banner' in request.FILES:
         profile.banner_image = request.FILES['banner']
         print(f"Banner atualizado: {request.FILES['banner'].name}")
+    
+    # Redes sociais
+    if 'instagram' in request.data:
+        profile.instagram = request.data['instagram']
+    if 'facebook' in request.data:
+        profile.facebook = request.data['facebook']
+    if 'twitter' in request.data:
+        profile.twitter = request.data['twitter']
         
     profile.save()
     
-    # Retorna o objeto atualizado
     serializer = UserSerializerWithToken(user, many=False)
     print("Dados retornados:", serializer.data)
     return Response(serializer.data)
@@ -123,12 +126,14 @@ def deleteUser(request, pk):
         return Response({'detail': 'Usuário não encontrado'}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['GET'])
+@permission_classes([AllowAny])  
 def getArtists(request):
     artists = User.objects.filter(artist_profile__is_artist=True)
     serializer = ArtistListSerializer(artists, many=True)
     return Response(serializer.data)
 
 @api_view(['GET'])
+@permission_classes([AllowAny]) 
 def getArtistProfileAndProducts(request, pk):
     try:
         artist = User.objects.get(id=pk)
