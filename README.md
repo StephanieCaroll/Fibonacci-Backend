@@ -9,7 +9,7 @@
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![SQLite](https://img.shields.io/badge/SQLite-07405E?style=for-the-badge&logo=sqlite&logoColor=white)
 
-<img src="/..." width="1200" alt="EM DESENVOLVIMENTO">
+<img src="/image.png" width="1200" alt="Fibonacci Projeto">
 
 > O **Fibonacci** é uma plataforma web desenvolvida com **Django e Django REST Framework** que conecta artistas locais e amantes da arte, oferecendo uma API robusta para gerenciamento de obras, perfis de artistas, usuários e sistema de pedidos.
 
