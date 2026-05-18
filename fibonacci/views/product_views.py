@@ -15,7 +15,6 @@ def getProducts(request):
     if query == None:
         query = ''
     
-    
     products = Product.objects.filter(
         Q(name__icontains=query) | 
         Q(user__first_name__icontains=query)
@@ -30,7 +29,6 @@ def getProducts(request):
         except ValueError: 
             page = 1 
 
-    
     paginator = Paginator(products, 8)
 
     try:
@@ -43,13 +41,11 @@ def getProducts(request):
     serializer = ProductSerializer(products, many=True) 
     return Response({'products': serializer.data, 'page': page, 'pages': paginator.num_pages}) 
 
-
 @api_view(['GET'])
 def getTopProducts(request): 
     products = Product.objects.filter(rating__gte=4).order_by('-rating')[:5]
     serializer = ProductSerializer(products, many=True)
     return Response(serializer.data)
-
 
 @api_view(['GET'])
 def getProduct(request, pk):
@@ -59,7 +55,6 @@ def getProduct(request, pk):
         return Response(serializer.data)
     except Product.DoesNotExist:
         return Response({'detail': 'Produto não encontrado'}, status=status.HTTP_404_NOT_FOUND)
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -98,3 +93,25 @@ def createProductReview(request, pk):
         product.save()
         
         return Response({'detail': 'Revisão Adicionada'}, status=status.HTTP_201_CREATED)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def createProduct(request):
+    user = request.user
+    data = request.data
+
+    product = Product.objects.create(
+        user=user,
+        name=data.get('name', 'Nova Obra'),
+        price=data.get('price', 0),
+        brand=data.get('brand', 'Artista Local'),
+        countInstock=data.get('countInstock', 1),
+        description=data.get('description', '')
+    )
+
+    if request.FILES.get('image'):
+        product.image = request.FILES.get('image')
+        product.save()
+
+    serializer = ProductSerializer(product, many=False)
+    return Response(serializer.data, status=status.HTTP_201_CREATED)

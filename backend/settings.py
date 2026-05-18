@@ -47,8 +47,7 @@ INSTALLED_APPS = [
 REST_FRAMEWORK ={
     'DEFAULT_PERMISSION_CLASSES':(
         'rest_framework.permissions.IsAuthenticated',
-    ),#classe de autenticação.
-    #isso pode ser pesquisado no Django REST framework JWT
+    ),
 
 }
 
@@ -58,19 +57,19 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
     'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
-    #isso te a ver com tokens.
+
 }
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'corsheaders.middleware.CorsMiddleware',#foi criado para lidar com o CORS (Cross-Origin Resource Sharing), permitindo que o backend seja acessado por clientes de diferentes origens.
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',#foi criado para servir arquivos estáticos em produção.
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -138,20 +137,19 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
-
-STATIC_ROOT = os.path.join(BASE_DIR,'staticfiles')
- #as urls ficam aqui
+# 1. Configurações Estáticas
 STATIC_URL = '/static/'
-STATIC_URL = '/media/' #foi criado para servir arquivos de mídia, como imagens ou arquivos enviados pelos usuários.
-STATIC_ROOT = os.path.join(BASE_DIR,"media") #foi criado para armazenar os arquivos de mídia em um diretório específico.
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 STATICFILES_DIRS = [
-    BASE_DIR/'static',
-
+    BASE_DIR / 'static',
 ]
 
-CORS_ALLOW_ALL_ORIGINS = True #foi criado para permitir que o backend seja acessado por clientes de diferentes origens, facilitando o desenvolvimento e a integração com o frontend.
+# 2. Configurações de Mídia (Uploads, Imagens dos Produtos e Perfis)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+# 3. Configurações de CORS (Permite comunicação com o React)
+CORS_ALLOW_ALL_ORIGINS = True
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'# foi criado
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
