@@ -1,21 +1,24 @@
 # Descrição desse tópico: Aceita dados complexos iguais a query,models,instâncias.
-#manipulação dos Models.
+# manipulação dos Models.
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User  
-from .models import Product, Order, OrderItem, Review, ShippingAddress, Category, ProductImage, Comment
+from .models import Product, Order, OrderItem, Review, ShippingAddress, Category, ProductImage, Comment, ArtistProfile
 
 class UserSerializer(serializers.ModelSerializer):
     
     name = serializers.SerializerMethodField(read_only=True)
     _id = serializers.SerializerMethodField(read_only=True)
     isAdmin = serializers.SerializerMethodField(read_only=True)
+    bio = serializers.SerializerMethodField(read_only=True)
+    location = serializers.SerializerMethodField(read_only=True)
+    avatar = serializers.SerializerMethodField(read_only=True)
+    banner = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = User  
-        fields = ['id', '_id', 'username', 'email', 'name', 'isAdmin']
+        fields = ['id', '_id', 'username', 'email', 'name', 'isAdmin', 'bio', 'location', 'avatar', 'banner']
 
-    
     def get__id(self, obj):
         return obj.id
 
@@ -27,6 +30,34 @@ class UserSerializer(serializers.ModelSerializer):
         if name == "":
             name = obj.email
         return name
+    
+    def get_bio(self, obj):
+        try:
+            return obj.artist_profile.bio or ""
+        except:
+            return ""
+    
+    def get_location(self, obj):
+        try:
+            return obj.artist_profile.location or ""
+        except:
+            return ""
+    
+    def get_avatar(self, obj):
+        try:
+            if obj.artist_profile.profile_image:
+                return obj.artist_profile.profile_image.url
+            return None
+        except:
+            return None
+    
+    def get_banner(self, obj):
+        try:
+            if obj.artist_profile.banner_image:
+                return obj.artist_profile.banner_image.url
+            return None
+        except:
+            return None
 
 
 class UserSerializerWithToken(UserSerializer):
@@ -34,8 +65,7 @@ class UserSerializerWithToken(UserSerializer):
 
     class Meta: 
         model = User 
-        fields = ['id', '_id', 'username', 'email', 'name', 'isAdmin', 'token']
-    
+        fields = ['id', '_id', 'username', 'email', 'name', 'isAdmin', 'bio', 'location', 'avatar', 'banner', 'token']
     
     def get_token(self, obj):
         token = RefreshToken.for_user(obj)
@@ -74,9 +104,8 @@ class ProductSerializer(serializers.ModelSerializer):
         return ReviewSerializer(reviews, many=True).data
 
     def get_comments(self, obj):
-        comments = obj.comments.all()  # Puxa os comentários vinculados ao produto
+        comments = obj.comments.all()
         return CommentSerializer(comments, many=True).data
-    
     
 
 class ShippingAddressSerializer(serializers.ModelSerializer):
@@ -110,35 +139,29 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def get_orderItems(self, obj):
-     
         items = obj.orderitem_set.all()
         return OrderItemSerializer(items, many=True).data
 
     def get_shippingAddress(self, obj):
         try:
-            
             address = obj.shippingaddress 
             return ShippingAddressSerializer(address, many=False).data
         except:
-            
             return None
 
     def get_user_details(self, obj):
         if obj.user:
             return UserSerializer(obj.user, many=False).data
         return None
-    
-    from rest_framework import serializers
-from django.contrib.auth.models import User
-from .models import ArtistProfile # certifique-se de importar o novo modelo
+
 
 class ArtistProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = ArtistProfile
         fields = ['is_artist', 'location', 'bio', 'profile_image', 'banner_image', 'instagram', 'facebook', 'twitter']
 
+
 class ArtistListSerializer(serializers.ModelSerializer):
-    # Puxa os dados do perfil estendido automaticamente
     profile = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -147,7 +170,6 @@ class ArtistListSerializer(serializers.ModelSerializer):
 
     def get_profile(self, obj):
         try:
-            # Tenta buscar o perfil do artista vinculado ao usuário
             profile = obj.artist_profile
             return ArtistProfileSerializer(profile, many=False).data
         except:

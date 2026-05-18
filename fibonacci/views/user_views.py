@@ -37,7 +37,6 @@ class MyTokenObtainPairView(TokenObtainPairView):
 def registerUser(request):
     data = request.data
     try:
-       
         user = User.objects.create(
             first_name=data['name'],
             username=data['email'],
@@ -48,6 +47,7 @@ def registerUser(request):
         profile, created = ArtistProfile.objects.get_or_create(user=user)
         profile.location = data.get('location', 'Brasil')
         profile.bio = data.get('bio', 'Nada a dizer')
+        profile.is_artist = True
         profile.save()
 
         serializer = UserSerializerWithToken(user, many=False)
@@ -60,35 +60,56 @@ def registerUser(request):
 @permission_classes([IsAuthenticated])
 def getUserProfile(request):
     user = request.user
-    serializer = UserSerializer(user, many=False)
+    serializer = UserSerializerWithToken(user, many=False)
     return Response(serializer.data)
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def updateUserProfile(request):  
     user = request.user 
-    data = request.data
     
-    user.first_name = data.get('name', user.first_name)
-    user.username = data.get('email', user.username)
-    user.email = data.get('email', user.email)
+    print("=" * 50)
+    print("Dados recebidos no request.data:", dict(request.data))
+    print("Arquivos recebidos:", request.FILES)
+    print("=" * 50)
     
-    if data.get('password') and data['password'] != "":
-        user.password = make_password(data['password'])
+    # 1. Atualiza dados básicos do Usuário
+    if 'name' in request.data and request.data['name']:
+        user.first_name = request.data['name']
+    
+    if 'email' in request.data and request.data['email']:
+        user.email = request.data['email']
+        user.username = request.data['email']
+    
     user.save()
 
+    # 2. Atualiza o perfil do artista
     profile, created = ArtistProfile.objects.get_or_create(user=user)
-    profile.location = data.get('location', profile.location)
-    profile.bio = data.get('bio', profile.bio)
+    profile.is_artist = True  # Garante que é artista
     
+    # Atualiza os campos de texto
+    if 'bio' in request.data:
+        profile.bio = request.data['bio']
+        print(f"Bio atualizada para: {profile.bio}")
+    
+    if 'location' in request.data:
+        profile.location = request.data['location']
+        print(f"Location atualizada para: {profile.location}")
+    
+    # Processa os arquivos de imagem
     if 'avatar' in request.FILES:
         profile.profile_image = request.FILES['avatar']
+        print(f"Avatar atualizado: {request.FILES['avatar'].name}")
+    
     if 'banner' in request.FILES:
         profile.banner_image = request.FILES['banner']
+        print(f"Banner atualizado: {request.FILES['banner'].name}")
         
     profile.save()
     
+    # Retorna o objeto atualizado
     serializer = UserSerializerWithToken(user, many=False)
+    print("Dados retornados:", serializer.data)
     return Response(serializer.data)
 
 @api_view(['DELETE'])
