@@ -1,5 +1,3 @@
-# Descrição desse tópico: Aceita dados complexos iguais a query,models,instâncias.
-# manipulação dos Models.
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User  
@@ -83,7 +81,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        fields = ['id', 'product', 'user', 'username', 'email', 'content', 'created']
+        fields = '__all__'
 
     def get_username(self, obj):
         if obj.user:
@@ -115,17 +113,9 @@ class ShippingAddressSerializer(serializers.ModelSerializer):
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
-    
-    product_details = serializers.SerializerMethodField(read_only=True)
-
     class Meta:
         model = OrderItem
-        fields = ['id', 'product', 'product_details', 'order', 'name', 'qty', 'price', 'image']
-
-    def get_product_details(self, obj):
-        if obj.product:
-            return {"name": obj.product.name, "price": str(obj.product.price)}
-        return None
+        fields = '__all__'
 
 
 class OrderSerializer(serializers.ModelSerializer):
@@ -158,7 +148,7 @@ class OrderSerializer(serializers.ModelSerializer):
 class ArtistProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = ArtistProfile
-        fields = ['is_artist', 'location', 'bio', 'profile_image', 'banner_image', 'instagram', 'facebook', 'twitter']
+        fields = '__all__'
 
 
 class ArtistListSerializer(serializers.ModelSerializer):
