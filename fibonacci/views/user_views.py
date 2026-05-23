@@ -83,7 +83,7 @@ def updateUserProfile(request):
     user.save()
 
     profile, created = ArtistProfile.objects.get_or_create(user=user)
-    profile.is_artist = True  # Garante que é artista
+    profile.is_artist = True  
     
     if 'bio' in request.data:
         profile.bio = request.data['bio']

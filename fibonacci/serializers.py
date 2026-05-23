@@ -2,6 +2,9 @@ from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User  
 from .models import Product, Order, OrderItem, Review, ShippingAddress, Category, ProductImage, Comment, ArtistProfile
+from rest_framework import serializers
+from .models import Exposicao
+
 
 class UserSerializer(serializers.ModelSerializer):
     
@@ -170,3 +173,14 @@ class ArtistListSerializer(serializers.ModelSerializer):
             return ArtistProfileSerializer(profile, many=False).data
         except:
             return None
+        
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = '__all__'
+
+class ExposicaoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Exposicao
+        fields = '__all__'
+

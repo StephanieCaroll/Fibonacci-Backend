@@ -6,6 +6,8 @@ class Category(models.Model):
     slug = models.SlugField(max_length=200, unique=True, null=True, blank=True)
     description = models.TextField(null=True, blank=True, verbose_name="Descrição da Categoria")
     _id = models.AutoField(primary_key=True, editable=False)
+    image = models.ImageField(upload_to="categories/", null=True, blank=True, verbose_name="Imagem da Categoria")
+    
 
     class Meta:
         verbose_name = "Categoria"
@@ -19,6 +21,7 @@ class Product(models.Model):
     name = models.CharField(max_length=200, null=True, blank=True)
     image = models.ImageField(null=True, blank=True, default="/images/placeholder.png", upload_to="images/")
     brand = models.CharField(max_length=200, null=True, blank=True, verbose_name="Artista / Artesão")
+    is_featured = models.BooleanField(default=False, verbose_name="Destaque da Semana")
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Categoria")
     description = models.TextField(null=True, blank=True)
     rating = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
@@ -107,7 +110,6 @@ class Comment(models.Model):
         return f"Comentário de {self.email if self.email else 'Anônimo'} no produto {self.product}"
     
 class ArtistProfile(models.Model):
-    # Vincula o perfil diretamente a um usuário existente
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='artist_profile')
     is_artist = models.BooleanField(default=False)
     location = models.CharField(max_length=255, default='Recife, PE')
@@ -120,3 +122,17 @@ class ArtistProfile(models.Model):
 
     def __str__(self):
         return f"Perfil de Artista - {self.user.username}"
+class Exposicao(models.Model):
+    titulo = models.CharField(max_length=200)
+    artista = models.CharField(max_length=100)
+    data_inicio = models.DateField()
+    data_fim = models.DateField()
+    local = models.CharField(max_length=100)
+    imagem = models.ImageField(upload_to='exposicoes/')
+
+    class Meta:
+        verbose_name = "Encontro"
+        verbose_name_plural = "Nossos Encontros"
+
+    def __str__(self):
+        return self.titulo

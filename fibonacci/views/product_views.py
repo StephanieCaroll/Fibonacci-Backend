@@ -1,15 +1,17 @@
 from django.shortcuts import render
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage 
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny 
 from rest_framework.response import Response
 from rest_framework import status
 from django.db.models import Q 
 
-from fibonacci.models import Product, Review, Category
-from fibonacci.serializers import ProductSerializer, ReviewSerializer
+
+from ..models import Exposicao, Product, Review, Category
+from ..serializers import ExposicaoSerializer, ProductSerializer, ReviewSerializer, CategorySerializer
 
 @api_view(['GET'])
+@permission_classes([AllowAny]) 
 def getProducts(request):
     query = request.query_params.get('keyword')
     if query == None:
@@ -42,12 +44,14 @@ def getProducts(request):
     return Response({'products': serializer.data, 'page': page, 'pages': paginator.num_pages}) 
 
 @api_view(['GET'])
+@permission_classes([AllowAny]) 
 def getTopProducts(request): 
     products = Product.objects.filter(rating__gte=4).order_by('-rating')[:5]
     serializer = ProductSerializer(products, many=True)
     return Response(serializer.data)
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def getProduct(request, pk):
     try:
         product = Product.objects.get(_id=pk)
@@ -115,7 +119,6 @@ def createProduct(request):
         category_obj, created = Category.objects.get_or_create(name=nome_formatado)
         print(f"Objeto Categoria '{category_obj.name}' vinculado. Criado agora? {created}")
 
-    # Criação do produto
     product = Product.objects.create(
         user=user,
         name=data.get('name', 'Nova Obra'),
@@ -136,3 +139,30 @@ def createProduct(request):
 
     serializer = ProductSerializer(product, many=False)
     return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+@api_view(['GET'])
+@permission_classes([AllowAny]) 
+def getFeaturedProducts(request):
+    products = Product.objects.filter(is_featured=True).order_by('-createAt')[:8]
+    serializer = ProductSerializer(products, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+@permission_classes([AllowAny]) 
+def getProductsByCategory(request, category_name):
+    products = Product.objects.filter(category__name__iexact=category_name).order_by('-createAt')[:8]
+    serializer = ProductSerializer(products, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def getCategories(request):
+    categories = Category.objects.all()
+    serializer = CategorySerializer(categories, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+def getEncontros(request):
+    encontros = Exposicao.objects.all()
+    serializer = ExposicaoSerializer(encontros, many=True)
+    return Response(serializer.data)
