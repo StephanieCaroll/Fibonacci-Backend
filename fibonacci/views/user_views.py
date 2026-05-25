@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.contrib.auth.models import User 
 from django.contrib.auth.hashers import make_password
 from django.http import JsonResponse 
+from django.views.decorators.csrf import csrf_exempt
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -12,7 +13,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from fibonacci.models import *
-from fibonacci.serializers import UserSerializer, UserSerializerWithToken, ArtistListSerializer, ProductSerializer
+from fibonacci.serializers import UserSerializer, UserSerializerWithToken, ArtistListSerializer, ProductSerializer,UserProfileAddressSerializer
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
@@ -146,3 +147,44 @@ def getArtistProfileAndProducts(request, pk):
         })
     except User.DoesNotExist:
         return Response({'detail': 'Artista não encontrado'}, status=404)
+    
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def getUserAddresses(request):
+    user = request.user
+    addresses = user.profile_addresses.all() 
+    serializer = UserProfileAddressSerializer(addresses, many=True)
+    return Response(serializer.data)
+
+@csrf_exempt  # Adicionado para evitar erro 403 Forbidden no seu React
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def addAddress(request):
+    data = request.data
+    user = request.user
+    
+    address = UserProfileAddress.objects.create(
+        user=user,
+        address=data['address'],
+        number=data['number'],
+        neighborhood=data['neighborhood'],
+        city=data['city'],
+        state=data['state'],
+        postalCode=data['postalCode'],
+        is_default=True
+    
+    )
+    return Response({'detail': 'Endereço salvo com sucesso!'}, status=status.HTTP_201_CREATED)
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def deleteAddress(request, pk):
+    try:
+        # Aqui buscamos usando '_id' como chave do banco
+        address = UserProfileAddress.objects.get(_id=pk, user=request.user)
+        address.delete()
+        return Response({'detail': 'Endereço excluído com sucesso!'}, status=status.HTTP_200_OK)
+    except UserProfileAddress.DoesNotExist:
+        return Response({'detail': 'Endereço não encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        print(f"Erro ao deletar: {e}")
+        return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -1,13 +1,9 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User  
-from .models import Product, Order, OrderItem, Review, ShippingAddress, Category, ProductImage, Comment, ArtistProfile
-from rest_framework import serializers
-from .models import Exposicao
-
+from .models import Product, Order, OrderItem, Review, ShippingAddress, Category, ProductImage, Comment, ArtistProfile, Exposicao, UserProfileAddress
 
 class UserSerializer(serializers.ModelSerializer):
-    
     name = serializers.SerializerMethodField(read_only=True)
     _id = serializers.SerializerMethodField(read_only=True)
     isAdmin = serializers.SerializerMethodField(read_only=True)
@@ -60,7 +56,6 @@ class UserSerializer(serializers.ModelSerializer):
         except:
             return None
 
-
 class UserSerializerWithToken(UserSerializer):
     token = serializers.SerializerMethodField(read_only=True)
 
@@ -72,12 +67,10 @@ class UserSerializerWithToken(UserSerializer):
         token = RefreshToken.for_user(obj)
         return str(token.access_token)
 
-
 class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = '__all__'
-
 
 class CommentSerializer(serializers.ModelSerializer):
     username = serializers.SerializerMethodField(read_only=True)
@@ -90,7 +83,6 @@ class CommentSerializer(serializers.ModelSerializer):
         if obj.user:
             return obj.user.username
         return "Usuário Anônimo"
-
 
 class ProductSerializer(serializers.ModelSerializer):
     reviews = serializers.SerializerMethodField(read_only=True)
@@ -113,22 +105,18 @@ class ProductSerializer(serializers.ModelSerializer):
         if obj.category:
             return obj.category.name
         return "Arte"
-    
 
 class ShippingAddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = ShippingAddress
         fields = '__all__'
 
-
 class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderItem
         fields = '__all__'
 
-
 class OrderSerializer(serializers.ModelSerializer):
-    
     orderItems = serializers.SerializerMethodField(read_only=True)
     shippingAddress = serializers.SerializerMethodField(read_only=True)
     user_details = serializers.SerializerMethodField(read_only=True)
@@ -152,13 +140,6 @@ class OrderSerializer(serializers.ModelSerializer):
         if obj.user:
             return UserSerializer(obj.user, many=False).data
         return None
-
-
-class ArtistProfileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ArtistProfile
-        fields = '__all__'
-
 
 class ArtistListSerializer(serializers.ModelSerializer):
     profile = serializers.SerializerMethodField(read_only=True)
@@ -184,3 +165,14 @@ class ExposicaoSerializer(serializers.ModelSerializer):
         model = Exposicao
         fields = '__all__'
 
+class UserProfileAddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfileAddress
+        fields = '__all__'
+
+class ArtistProfileSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
+
+    class Meta:
+        model = ArtistProfile
+        fields = ['id', 'username', 'bio', 'location', 'profile_image', 'banner_image', 'instagram']

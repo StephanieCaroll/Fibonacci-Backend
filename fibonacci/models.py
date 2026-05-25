@@ -136,3 +136,19 @@ class Exposicao(models.Model):
 
     def __str__(self):
         return self.titulo
+
+
+class UserProfileAddress(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='profile_addresses')
+    address = models.CharField(max_length=255, verbose_name="Rua/Logradouro")
+    number = models.CharField(max_length=20, verbose_name="Número")
+    complement = models.CharField(max_length=100, null=True, blank=True, verbose_name="Complemento")
+    neighborhood = models.CharField(max_length=100, verbose_name="Bairro")
+    city = models.CharField(max_length=100, verbose_name="Cidade")
+    state = models.CharField(max_length=2, verbose_name="Estado (UF)")
+    postalCode = models.CharField(max_length=20, verbose_name="CEP")
+    is_default = models.BooleanField(default=False, verbose_name="Endereço Padrão")
+    _id = models.AutoField(primary_key=True, editable=False)
+
+    def __str__(self):
+        return f"{self.address}, {self.number} - {self.user.username}"

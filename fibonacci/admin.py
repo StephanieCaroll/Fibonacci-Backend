@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Product, Order, OrderItem, Review, ShippingAddress, Category,ProductImage
+from .models import Product, Order, OrderItem, Review, ShippingAddress, Category, ProductImage, Exposicao, UserProfileAddress,ArtistProfile
 from .models import Exposicao
 
 @admin.register(Category)
@@ -46,6 +46,18 @@ class EncontroAdmin(admin.ModelAdmin):
     list_display = ['titulo', 'artista', 'data_inicio', 'data_fim', 'local']
     list_filter = ['data_inicio', 'artista']
     search_fields = ['titulo', 'artista']
+
+
+@admin.register(UserProfileAddress)
+class UserProfileAddressAdmin(admin.ModelAdmin):
+    list_display = ['user', 'address', 'city', 'state', 'postalCode', 'is_default']
+    list_filter = ['user', 'state']
+    search_fields = ['user__username', 'address', 'city']
+
+@admin.register(ArtistProfile)
+class ArtistProfileAdmin(admin.ModelAdmin):
+    list_display = ['user', 'location', 'instagram']
+    search_fields = ['user__username', 'location']
 
 
 
